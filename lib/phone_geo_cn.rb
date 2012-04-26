@@ -1,5 +1,5 @@
 class PhoneGeoCn
     def self.hi
-        puts 'hello'
+        'hello'
     end
 end
