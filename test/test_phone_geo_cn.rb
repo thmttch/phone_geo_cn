@@ -1,11 +1,23 @@
 require 'test/unit'
-require 'phone_geo_cn'
+require 'phone_geo_cn.rb'
 
-class HolaTest < Test::Unit::TestCase
+class CnPhoneNumberTest < Test::Unit::TestCase
 
-=begin
-    def test_hello
-        assert_equal "hello", PhoneGeoCn.hi
+    # check at least it never blows up, regardless of the input
+    def test_initialize
+        [ 
+            [1, '1'],
+            [123, '123'],
+            ['(+8610)5992 7396', '1059927396'],
+            ['(+8610) 5992 0000', '1059920000'],
+            ['08610 5992 0000', '1059920000'],
+            [nil, nil],
+            ['', nil],
+            ['     ', nil],
+            ['a bunch of words with no digits', nil],
+        ].each do |test, expected|
+            CnPhoneNumber.new test
+        end
     end
 
     def test_clean
@@ -16,47 +28,80 @@ class HolaTest < Test::Unit::TestCase
             ['(+8610) 5992 0000', '1059920000'],
             ['08610 5992 0000', '1059920000'],
         ].each do |test, expected|
-            assert_equal expected, PhoneGeoCn.clean(test)
+            assert_equal expected, CnPhoneNumber.clean(test)
         end
     end
 
-    def test_is_valid
-        [ 
-            #[1, false],
-            #[123, false],
-            #['(+8610)5992 7396', true],
-            #['(+8610) 5992 0000', true],
-        ].each do |test, expected|
-            assert_equal expected, PhoneGeoCn.is_valid?(test)
+    # TODO break this up so that they're actual unit tests
+    def test_numbers
+
+        # landline, beijing
+        [
+            ['(+8610)5992 7396', '59927396'],
+            ['(+8610) 5992 0000', '59920000'],
+            ['08610 5992 0000', '59920000'],
+        ].each do | test, expected|
+            x = CnPhoneNumber.new test
+            assert_equal :landline, x.type, "failed on #{test}"
+            assert_equal 'Beijing', x.city
+            assert_equal expected, x.number
+            assert x.is_valid?, "failed on #{test}"
         end
-    end
 
-    def test_is_mobile
-        [ 
-            [1, false],
-            [123, false],
-            [18616291234, true],
-        ].each do |test, expected|
-            assert_equal expected, PhoneGeoCn.is_mobile?(test), "failed on: #{test}"
+        # landline, shanghai
+        [
+            ['021 61711150', '61711150'],
+            ['021 51879217', '51879217'],
+            ['021 51863213', '51863213'],
+        ].each do | test, expected|
+            x = CnPhoneNumber.new test
+            assert_equal :landline, x.type, "failed on #{test}, expected #{expected}"
+            assert_equal 'Shanghai', x.city
+            assert_equal expected, x.number
+            assert x.is_valid?, "failed on #{test}"
         end
-    end
 
-    def test_is_landline
-        [ 
-            [1, false],
-            [123, false],
-            [18616291234, false],
-        ].each do |test, expected|
-            assert_equal expected, PhoneGeoCn.is_landline?(test), "failed on: #{test}"
+        # mobile, china_unicom
+        [
+            ['18612345678', '12345678'],
+            ['15692164005', '92164005'],
+        ].each do | test, expected|
+            x = CnPhoneNumber.new test
+            assert_equal x.type, :mobile, "failed on #{test}"
+            assert_equal x.provider, :china_unicom, "failed on #{test}"
+            assert_equal x.number, expected
+            assert x.is_valid?, "failed on #{test}"
         end
+        [
+            # all short 1 digit
+            ['1861234567', ''],
+            ['1569216400', ''],
+        ].each do | test, expected|
+            x = CnPhoneNumber.new test
+            assert ! x.is_valid?, "failed on #{test}"
+        end
+
+        # mobile, china_mobile
+        [
+            ['13636509747', '36509747'],
+        ].each do | test, expected|
+            x = CnPhoneNumber.new test
+            assert_equal x.type, :mobile, "failed on #{test}"
+            assert_equal x.provider, :china_mobile, "failed on #{test}"
+            assert_equal x.number, expected
+            assert x.is_valid?, "failed on #{test}"
+        end
+        [
+            # short 1 digit
+            ['1363650974', '36509747'],
+        ].each do | test, expected|
+            x = CnPhoneNumber.new test
+            assert ! x.is_valid?, "failed on #{test}"
+        end
+
     end
 
-    def test_province_name
-        # invalid number returns nil
-        assert_equal nil, PhoneGeoCn.province_name(123)
-    end
-
-    def test_is_magic_number
+    def test_magic_numbers
         [ 
             [110, true],
             [119, true],
@@ -71,9 +116,17 @@ class HolaTest < Test::Unit::TestCase
             [2, false],
             [3, false],
         ].each do |test, expected|
-            assert_equal expected, PhoneGeoCn.is_magic_number?(test), "failed on: #{test}"
+            x = CnPhoneNumber.new test
+
+            # either :magic or :unknown, depending
+            if expected
+                assert_equal :magic, x.type, "failed on #{test}"
+            else
+                assert_equal :unknown, x.type
+            end
+
+            assert_equal expected, x.is_valid?, "failed on #{test}"
         end
     end
 
-=end
 end

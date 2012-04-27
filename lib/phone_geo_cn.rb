@@ -1,9 +1,87 @@
-class PhoneGeoCn
+require 'provinces.rb'
+require 'providers.rb'
 
-    # is_valid is the main method; all others are helpers to help determine validity
+class CnPhoneNumber
 
-    def self.hi
-        'hello'
+    # TODO add type_number?
+    attr_reader :raw_number, :number, :type, :type_number, :provider, :provider_number, :city, :city_number
+
+    # properties
+    # is_valid | is_invalid
+    # type => is_mobile | is_landline | is_magic
+    # provider => :china_unicom, :china_telecom, :china_mobile, :china_sat, :unknown, :not_applicable
+    # city => :beijing, :shanghai, ..., :unknown, :not_applicable
+    # reason => :ok, :invalid_length, :invalid_city_code
+    
+    def initialize(number)
+        @raw_number = number
+        @number = CnPhoneNumber.clean(number)
+        #puts "number = #{@number}"
+
+        # TODO too short or too long
+
+        # let's determine the basic type: landline, mobile, magic, or unknown
+        # source: TODO
+        if CnPhoneNumber.is_magic_number?(@number)
+            @type = :magic
+        # a very basic length check: at least 7 digits, assuming no area or provider code
+        elsif @number.length >= 7
+            if @number[0] == '1'
+                # at this point, it's either: Beijing's city code, OR ...
+                if @number[1] == '0'
+                    @type = :landline
+                # no known mobile providers have '19...'
+                elsif @number[1] != '9'
+                    @type = :mobile
+                else
+                    @type = :unknown
+                end
+            else
+                @type = :landline
+            end
+        else
+            @type = :unknown
+        end
+        #puts "type = #{@type}"
+
+        if @type == :mobile
+            # see if we can find a provider, and strip it from @number if found
+            @provider = :unknown
+            @provider_number = nil
+            Providers.all.each_pair do | area_code, provider |
+                # all mobile numbers must be of length 8 (minus the provider code)
+                if @number[0, area_code.length] == area_code && @number.length - area_code.length == 8
+                    @provider = provider
+                    @provider_number = area_code
+                    @number = @number[area_code.length, @number.length]
+                    break
+                end
+            end
+        elsif @type == :landline
+            # try to find the city, and strip it from @number if found
+            @city = :unknown
+            @city_number = nil
+            Provinces.all.each_pair do | area_code, city |
+                #puts area_code, city, @number[0, area_code.length]
+                # all landline numbers must be >= length 7 (minus the provider code)
+                if @number[0, area_code.length] == area_code && @number.length - area_code.length >= 7
+                    @city = city
+                    @city_number = area_code
+                    @number = @number[area_code.length, @number.length]
+                    break
+                end
+            end
+        else
+            @provider = :unknown
+            @provider_number = nil
+            @city = :unknown
+            @city_number = nil
+        end
+
+    end
+
+    def is_valid?
+        (@type == :magic) || (@type == :mobile && @provider != :unknown) || (@type == :landline && @city != :unknown)
     end
 
     # always returns a string, with everything except digits stripped out
@@ -18,71 +96,11 @@ class PhoneGeoCn
         result
     end
 
-    def self.is_valid_with_reason(number)
-        cleaned = PhoneGeoCn.clean(number)
-
-        # let's determine the basic class: landline, mobile, or magic
-
-        # it's either landline, or...
-        if PhoneGeoCn.is_mobile?(cleaned)
-
-        # mobile
-        elsif PhoneGeoCn.is_landline?(cleaned)
-            return :is_landline
-        # magic
-        elsif PhoneGeoCn.is_magic_number?(cleaned)
-            return :is_magic
-        # unrecognized
-        else
-        end
-
-        # all good!
-        :is_valid
-    end
-
-    def self.is_valid?(number)
-        PhoneGeoCn.is_valid_with_reason(number) == :is_valid
-    end
-
-    # if number is not valid, then it's also not mobile
-    # the converse is also true: if it's mobile, it must be valid
-    def self.is_mobile?(number)
-        cleaned = PhoneGeoCn.clean(number)
-        cleaned.length == 11 && cleaned[0] == '1'
-    end
-
-    def self.is_landline?(number)
-        #! PhoneGeoCn.is_mobile?(number)
-        cleaned = PhoneGeoCn.clean(number)
-        cleaned.length == 7 || cleaned.length == 8
-    end
-
-    def self.provider(number)
-
-    end
-
-    # if number is not valid, returns nil
-    def self.province_name(number)
-        if PhoneGeoCn.is_invalid?(number)
-            return nil
-        end
-
-        cleaned = PhoneGeoCn.clean(number)
-
-        provinces = {
-        }
-        provinces.default = false
-
-        provinces[cleaned]
-    end
-
     # standard numbers, for emergencies, government, etc
     # does NOT do a is_valid check
     # source: http://en.wikipedia.org/wiki/Telephone_numbers_in_China#Emergency_Numbers
     # source: http://en.wikipedia.org/wiki/Telephone_numbers_in_China#Others
     def self.is_magic_number?(number)
-        cleaned = PhoneGeoCn.clean(number)
-
         magic = {
             '110' => true,
             '119' => true,
@@ -96,7 +114,7 @@ class PhoneGeoCn
         }
         magic.default = false
 
-        magic[cleaned]
+        magic[number]
     end
 
 end
