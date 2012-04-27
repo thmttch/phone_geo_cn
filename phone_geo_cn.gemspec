@@ -3,7 +3,7 @@ Gem::Specification.new do |s|
     s.version     = '0.0.1'
     s.date        = '2012-04-27'
     s.summary     = 'Basic implementation of a phone number validator for China.'
-    s.description = ''
+    s.description = 'A convenience class which encapsulates most of the rules for Chinese phone numbers, sourced primarily from Wikipedia.'
     s.authors     = [ 'Matt Chu' ]
     s.email       = 'matt.chu@gmail.com'
     s.files       = [ 'lib/phone_geo_cn.rb', 'lib/providers.rb', 'lib/provinces.rb' ]
