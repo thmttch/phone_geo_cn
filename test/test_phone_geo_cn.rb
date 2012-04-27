@@ -131,6 +131,28 @@ class CnPhoneNumberTest < Test::Unit::TestCase
 
     def test_to_canonical_s
         [ 
+            ['(+8610)5992 7396', '1059927396'],
+            ['10-59927396', '1059927396'],
+            ['021 61711150', '2161711150'],
+            ['021 51879217', '2151879217'],
+            ['021 51863213', '2151863213'],
+            [110, '110'],
+            [119, '119'],
+            [120, '120'],
+            [122, '122'],
+            [999, '999'],
+            [114, '114'],
+            [12117, '12117'],
+            [12121, '12121'],
+            ['13636509747', '13636509747'],
+        ].each do |test, expected|
+            x = CnPhoneNumber.new test
+            assert_equal expected, x.to_canonical_s, "failed on #{test}"
+        end
+    end
+
+    def test_to_pretty_s
+        [ 
             ['(+8610)5992 7396', '10-59927396'],
             ['10-59927396', '10-59927396'],
             ['021 61711150', '21-61711150'],
@@ -147,7 +169,7 @@ class CnPhoneNumberTest < Test::Unit::TestCase
             ['13636509747', '136-36509747'],
         ].each do |test, expected|
             x = CnPhoneNumber.new test
-            assert_equal expected, x.to_canonical_s, "failed on #{test}"
+            assert_equal expected, x.to_pretty_s, "failed on #{test}"
         end
     end
 

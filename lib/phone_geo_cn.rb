@@ -96,6 +96,18 @@ class CnPhoneNumber
             if @type == :magic
                 "#{@number}"
             else
+                "#{area_code}#{@number}"
+            end
+        end
+    end
+
+    # returns the full number, properly marked with area code, with pretty printing
+    # if the number is not valid, returns nil
+    def to_pretty_s
+        if self.is_valid?
+            if @type == :magic
+                "#{@number}"
+            else
                 "#{area_code}-#{@number}"
             end
         end
