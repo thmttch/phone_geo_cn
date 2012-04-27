@@ -406,7 +406,7 @@ class Provinces
         '852' => 'Zunyi',
     }
 
-    def self.provinces
+    def self.all
         @@provinces
     end
 end

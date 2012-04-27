@@ -53,7 +53,7 @@ class Providers
         '189' => :china_telecom,
     }
 
-    def self.providers
+    def self.all
         @@providers
     end
 end

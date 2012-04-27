@@ -1,9 +1,9 @@
-#require 'data/provinces.rb'
 require 'provinces.rb'
 require 'providers.rb'
 
 class CnPhoneNumber
 
+    # TODO add type_number?
     attr_reader :raw_number, :number, :type, :type_number, :provider, :provider_number, :city, :city_number
 
     # properties
@@ -16,7 +16,7 @@ class CnPhoneNumber
     def initialize(number)
         @raw_number = number
         @number = CnPhoneNumber.clean(number)
-        puts "number = #{@number}"
+        #puts "number = #{@number}"
 
         # TODO too short or too long
 
@@ -35,9 +35,9 @@ class CnPhoneNumber
                 @type = :unknown
             end
         else
-            @type = :unknown
+            @type = :landline
         end
-        puts "type = #{@type}"
+        #puts "type = #{@type}"
 
 #        # landline, ...
 #        if @number.length == 7 || @number.length == 8
@@ -57,8 +57,9 @@ class CnPhoneNumber
             # see if we can find a provider, and strip it from @number if found
             @provider = :unknown
             @provider_number = nil
-            Providers.providers.each_pair do | area_code, provider |
-                if @number[0, area_code.length] == area_code
+            Providers.all.each_pair do | area_code, provider |
+                # all mobile numbers must be of length 8 (minus the provider code)
+                if @number[0, area_code.length] == area_code && @number.length - area_code.length == 8
                     @provider = provider
                     @provider_number = area_code
                     @number = @number[area_code.length, @number.length]
@@ -69,15 +70,20 @@ class CnPhoneNumber
             # try to find the city, and strip it from @number if found
             @city = :unknown
             @city_number = nil
-            Provinces.provinces.each_pair do | area_code, city |
+            Provinces.all.each_pair do | area_code, city |
+                #puts area_code, city, @number[0, area_code.length]
                 if @number[0, area_code.length] == area_code
                     @city = city
                     @city_number = area_code
                     @number = @number[area_code.length, @number.length]
+                    break
                 end
             end
         else
-            # initialize TODO
+            @provider = :unknown
+            @provider_number = nil
+            @city = :unknown
+            @city_number = nil
         end
 
     end
