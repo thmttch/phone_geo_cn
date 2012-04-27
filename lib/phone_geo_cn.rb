@@ -4,18 +4,22 @@ require 'providers.rb'
 class CnPhoneNumber
 
     # TODO add type_number?
-    attr_reader :raw_number, :number, :type, :type_number, :provider, :provider_number, :city, :city_number
+    attr_reader :raw_number, :number, :type, :type_number, 
+        :provider, :provider_number, :city, :city_number, :area_code,
+        :reason, :to_canonical_s
 
     # properties
     # is_valid | is_invalid
     # type => is_mobile | is_landline | is_magic
     # provider => :china_unicom, :china_telecom, :china_mobile, :china_sat, :unknown, :not_applicable
     # city => :beijing, :shanghai, ..., :unknown, :not_applicable
-    # reason => :ok, :invalid_length, :invalid_city_code
-    
+    # reason => :ok, :unknown_type, :invalid_length, :invalid_city_code
+
     def initialize(number)
         @raw_number = number
         @number = CnPhoneNumber.clean(number)
+        # assume okay until shown otherwise
+        @reason = :ok
         #puts "number = #{@number}"
 
         # TODO too short or too long
@@ -41,6 +45,7 @@ class CnPhoneNumber
             end
         else
             @type = :unknown
+            @reason = :unknown_type
         end
         #puts "type = #{@type}"
 
@@ -82,6 +87,28 @@ class CnPhoneNumber
 
     def is_valid?
         (@type == :magic) || (@type == :mobile && @provider != :unknown) || (@type == :landline && @city != :unknown)
+    end
+
+    # returns the full number, properly marked with area code
+    # if the number is not valid, returns nil
+    def to_canonical_s
+        if self.is_valid?
+            if @type == :magic
+                "#{@number}"
+            else
+                "#{area_code}-#{@number}"
+            end
+        end
+    end
+
+    def area_code
+        if @type == :mobile
+            @provider_number
+        elsif @type == :landline
+            @city_number
+        elsif @type == :magic
+            @magic
+        end
     end
 
     # always returns a string, with everything except digits stripped out
