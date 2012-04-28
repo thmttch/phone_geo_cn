@@ -84,6 +84,7 @@ class CnPhoneNumberTest < Test::Unit::TestCase
         # mobile, china_mobile
         [
             ['13636509747', '36509747'],
+            ['18321012693', '21012693'],
         ].each do | test, expected|
             x = CnPhoneNumber.new test
             assert_equal x.type, :mobile, "failed on #{test}"

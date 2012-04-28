@@ -43,6 +43,7 @@ class Providers
         '180' => :china_telecom,
 
         '182' => :china_mobile,
+        '183' => :china_mobile,
 
         '185' => :china_unicom,
         '186' => :china_unicom,
