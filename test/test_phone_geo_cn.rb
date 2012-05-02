@@ -53,6 +53,8 @@ class CnPhoneNumberTest < Test::Unit::TestCase
             ['021 61711150', '61711150'],
             ['021 51879217', '51879217'],
             ['021 51863213', '51863213'],
+            # SMS spammer
+            ['021 10655755', '10655755'],
         ].each do | test, expected|
             x = CnPhoneNumber.new test
             assert_equal :landline, x.type, "failed on #{test}, expected #{expected}"
@@ -168,6 +170,18 @@ class CnPhoneNumberTest < Test::Unit::TestCase
             [12117, '12117'],
             [12121, '12121'],
             ['13636509747', '136-36509747'],
+        ].each do |test, expected|
+            x = CnPhoneNumber.new test
+            assert_equal expected, x.to_pretty_s, "failed on #{test}"
+        end
+    end
+
+    # TODO more than 1 leading zero should probably not validate.
+    def test_leading_zeros
+        [ 
+            ['02161711150', '21-61711150'],
+            ['002161711150', '21-61711150'],
+            ['0002161711150', '21-61711150'],
         ].each do |test, expected|
             x = CnPhoneNumber.new test
             assert_equal expected, x.to_pretty_s, "failed on #{test}"
