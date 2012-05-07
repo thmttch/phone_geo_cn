@@ -53,13 +53,20 @@ class CnPhoneNumber
             # see if we can find a provider, and strip it from @number if found
             @provider = :unknown
             @provider_number = nil
-            Providers.all.each_pair do | area_code, provider |
-                # all mobile numbers must be of length 8 (minus the provider code)
-                if @number[0, area_code.length] == area_code && @number.length - area_code.length == 8
-                    @provider = provider
-                    @provider_number = area_code
-                    @number = @number[area_code.length, @number.length]
-                    break
+
+            # all mobile numbers must be length 11. there are two cases:
+            # a) 3 digit provider code + 8 digit local extension
+            # b) 4 digit provider code (134X) + 7 digit local extension
+            length_check_passed = @number.length == 11
+
+            if length_check_passed
+                Providers.all.each_pair do | area_code, provider |
+                    if @number[0, area_code.length] == area_code
+                        @provider = provider
+                        @provider_number = area_code
+                        @number = @number[area_code.length, @number.length]
+                        break
+                    end
                 end
             end
         elsif @type == :landline

@@ -15,7 +15,7 @@ class CnPhoneNumberTest < Test::Unit::TestCase
             ['', nil],
             ['     ', nil],
             ['a bunch of words with no digits', nil],
-        ].each do |test, expected|
+        ].each do |test, expected |
             CnPhoneNumber.new test
         end
     end
@@ -27,7 +27,7 @@ class CnPhoneNumberTest < Test::Unit::TestCase
             ['(+8610)5992 7396', '1059927396'],
             ['(+8610) 5992 0000', '1059920000'],
             ['08610 5992 0000', '1059920000'],
-        ].each do |test, expected|
+        ].each do |test, expected |
             assert_equal expected, CnPhoneNumber.clean(test)
         end
     end
@@ -40,7 +40,7 @@ class CnPhoneNumberTest < Test::Unit::TestCase
             ['(+8610)5992 7396', '59927396'],
             ['(+8610) 5992 0000', '59920000'],
             ['08610 5992 0000', '59920000'],
-        ].each do | test, expected|
+        ].each do | test, expected |
             x = CnPhoneNumber.new test
             assert_equal :landline, x.type, "failed on #{test}"
             assert_equal 'Beijing', x.city
@@ -55,7 +55,7 @@ class CnPhoneNumberTest < Test::Unit::TestCase
             ['021 51863213', '51863213'],
             # SMS spammer
             ['021 10655755', '10655755'],
-        ].each do | test, expected|
+        ].each do | test, expected |
             x = CnPhoneNumber.new test
             assert_equal :landline, x.type, "failed on #{test}, expected #{expected}"
             assert_equal 'Shanghai', x.city
@@ -67,11 +67,11 @@ class CnPhoneNumberTest < Test::Unit::TestCase
         [
             ['18612345678', '12345678'],
             ['15692164005', '92164005'],
-        ].each do | test, expected|
+        ].each do | test, expected |
             x = CnPhoneNumber.new test
-            assert_equal x.type, :mobile, "failed on #{test}"
-            assert_equal x.provider, :china_unicom, "failed on #{test}"
-            assert_equal x.number, expected
+            assert_equal :mobile, x.type, "failed on #{test}"
+            assert_equal :china_unicom, x.provider, "failed on #{test}"
+            assert_equal expected, x.number
             assert x.is_valid?, "failed on #{test}"
         end
         [
@@ -87,17 +87,18 @@ class CnPhoneNumberTest < Test::Unit::TestCase
         [
             ['13636509747', '36509747'],
             ['18321012693', '21012693'],
-        ].each do | test, expected|
+            ['13439500544', '9500544'],
+        ].each do | test, expected |
             x = CnPhoneNumber.new test
-            assert_equal x.type, :mobile, "failed on #{test}"
-            assert_equal x.provider, :china_mobile, "failed on #{test}"
-            assert_equal x.number, expected
+            assert_equal :mobile, x.type, "failed on #{test}"
+            assert_equal :china_mobile, x.provider, "failed on #{test}"
+            assert_equal expected, x.number 
             assert x.is_valid?, "failed on #{test}"
         end
         [
             # short 1 digit
             ['1363650974', '36509747'],
-        ].each do | test, expected|
+        ].each do | test, expected |
             x = CnPhoneNumber.new test
             assert ! x.is_valid?, "failed on #{test}"
         end
@@ -118,7 +119,7 @@ class CnPhoneNumberTest < Test::Unit::TestCase
             [1, false],
             [2, false],
             [3, false],
-        ].each do |test, expected|
+        ].each do |test, expected |
             x = CnPhoneNumber.new test
 
             # either :magic or :unknown, depending
@@ -148,7 +149,7 @@ class CnPhoneNumberTest < Test::Unit::TestCase
             [12117, '12117'],
             [12121, '12121'],
             ['13636509747', '13636509747'],
-        ].each do |test, expected|
+        ].each do |test, expected |
             x = CnPhoneNumber.new test
             assert_equal expected, x.to_canonical_s, "failed on #{test}"
         end
@@ -170,7 +171,7 @@ class CnPhoneNumberTest < Test::Unit::TestCase
             [12117, '12117'],
             [12121, '12121'],
             ['13636509747', '136-36509747'],
-        ].each do |test, expected|
+        ].each do |test, expected |
             x = CnPhoneNumber.new test
             assert_equal expected, x.to_pretty_s, "failed on #{test}"
         end
@@ -182,7 +183,7 @@ class CnPhoneNumberTest < Test::Unit::TestCase
             ['02161711150', '21-61711150'],
             ['002161711150', '21-61711150'],
             ['0002161711150', '21-61711150'],
-        ].each do |test, expected|
+        ].each do |test, expected |
             x = CnPhoneNumber.new test
             assert_equal expected, x.to_pretty_s, "failed on #{test}"
         end
