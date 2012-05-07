@@ -1,7 +1,7 @@
 Gem::Specification.new do |s|
     s.name        = 'phone_geo_cn'
-    s.version     = '0.0.4'
-    s.date        = '2012-04-28'
+    s.version     = '0.0.5'
+    s.date        = '2012-05-07'
     s.summary     = 'Basic implementation of a phone number validator for China.'
     s.description = 'A convenience class which encapsulates most of the rules for Chinese phone numbers, sourced primarily from Wikipedia.'
     s.authors     = [ 'Matt Chu' ]
